@@ -39,7 +39,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           contents: cleaned,
           generationConfig: {
-            maxOutputTokens: 1000,
+            maxOutputTokens: 400,
             temperature: 0.8,
           }
         })
@@ -57,7 +57,11 @@ export default async function handler(req, res) {
       return res.status(200).json({ reply: '', error: 'empty_reply', raw: data });
     }
 
-    return res.status(200).json({ reply });
+    // 最初の一文だけ取り出す（句点・改行・感嘆符で区切る）
+    const firstSentence = reply.split(/[。！？
+]/)[0].trim();
+    const finalReply = firstSentence || reply;
+    return res.status(200).json({ reply: finalReply });
 
   } catch (error) {
     console.error('API error:', error);
