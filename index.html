@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>こころの壁紙</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400&family=Zen+Kaku+Gothic+New:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --umeda: #C9A87C;
+    --masachika: #5B7FA6;
+    --bg: #0E0E12;
+    --surface: #16161C;
+    --surface2: #1E1E27;
+    --text: #F0EDE8;
+    --muted: #7A7880;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  ::-webkit-scrollbar { display: none; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+  .fade { animation: fadeUp 0.35s ease forwards; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Zen Kaku Gothic New', 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1.25rem;
+  }
+
+  .logo {
+    font-family: Georgia, 'Noto Serif JP', serif;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 1.8rem;
+    padding-top: 0.5rem;
+  }
+
+  .dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 1.8rem;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #2A2A35;
+    transition: background 0.3s;
+  }
+  .dot.active { background: var(--accent-color, var(--umeda)); }
+
+  .screen { display: none; flex-direction: column; flex: 1; }
+  .screen.active { display: flex; }
+
+  /* キャラ選択 */
+  .chara-title {
+    font-family: Georgia, serif;
+    font-size: 20px; font-weight: 300;
+    line-height: 1.6; text-align: center;
+    margin-bottom: 6px;
+  }
+  .chara-sub {
+    font-size: 12px; color: var(--muted);
+    text-align: center; letter-spacing: 0.1em;
+    margin-bottom: 2rem;
+  }
+  .chara-cards {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .chara-card {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 1.25rem 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .chara-card:hover { transform: translateY(-3px); }
+  .chara-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    margin: 0 auto 0.6rem;
+    display: flex; align-items: center; justify-content: center;
+    font-family: Georgia, serif; font-size: 16px; font-weight: 600;
+  }
+  .chara-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .chara-type { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; }
+
+  /* チャット */
+  .chat-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 1rem; padding-bottom: 0.9rem;
+    border-bottom: 1px solid #2A2A35;
+  }
+  .chat-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: Georgia, serif; font-size: 11px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .messages {
+    flex: 1; overflow-y: auto;
+    display: flex; flex-direction: column;
+    gap: 0.7rem; margin-bottom: 0.75rem;
+    min-height: 220px; max-height: 380px;
+  }
+  .msg { max-width: 88%; }
+  .msg.ai { align-self: flex-start; }
+  .msg.user { align-self: flex-end; }
+  .bubble {
+    padding: 0.65rem 0.9rem;
+    font-size: 13px; line-height: 1.7;
+    color: var(--text); white-space: pre-wrap;
+  }
+  .msg.ai .bubble {
+    background: var(--surface2);
+    border: 1px solid #2A2A35;
+    border-radius: 14px 14px 14px 3px;
+  }
+  .msg.user .bubble {
+    background: var(--surface);
+    border: 1px solid #2A2A35;
+    border-radius: 14px 14px 3px 14px;
+  }
+  .typing {
+    display: flex; gap: 4px;
+    padding: 0.65rem 0.9rem;
+    background: var(--surface2);
+    border: 1px solid #2A2A35;
+    border-radius: 14px 14px 14px 3px;
+    width: fit-content;
+  }
+  .typing span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--muted); display: inline-block;
+  }
+  .typing span:nth-child(1) { animation: bounce 1.2s 0s infinite; }
+  .typing span:nth-child(2) { animation: bounce 1.2s 0.2s infinite; }
+  .typing span:nth-child(3) { animation: bounce 1.2s 0.4s infinite; }
+
+  .input-area { display: flex; gap: 8px; align-items: flex-end; }
+  textarea {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid #2A2A35;
+    border-radius: 10px;
+    color: var(--text);
+    font-family: inherit; font-size: 13px;
+    padding: 0.65rem 0.9rem;
+    resize: none; outline: none;
+    min-height: 42px; max-height: 110px;
+    line-height: 1.5;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--accent-color, var(--umeda)); }
+  textarea::placeholder { color: var(--muted); }
+  .send-btn {
+    width: 42px; height: 42px; border-radius: 50%;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: opacity 0.2s;
+  }
+  .send-btn:hover { opacity: 0.85; }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* 壁紙 */
+  .wp-label {
+    font-size: 11px; color: var(--muted);
+    letter-spacing: 0.1em; text-align: center;
+    margin-bottom: 0.9rem;
+  }
+  .wp-frame {
+    width: 180px; height: 320px;
+    border-radius: 20px;
+    margin: 0 auto 1.25rem;
+    overflow: hidden;
+    border: 1px solid #2A2A35;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  }
+  canvas { width: 100%; height: 100%; display: block; }
+
+  .btn-primary {
+    border: none; border-radius: 10px;
+    padding: 0.8rem; font-family: inherit;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; width: 100%;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-secondary {
+    background: transparent; color: var(--muted);
+    border: 1px solid #2A2A35; border-radius: 10px;
+    padding: 0.8rem; font-family: inherit;
+    font-size: 13px; cursor: pointer;
+    width: 100%; margin-bottom: 0.5rem;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="logo">こころの壁紙</div>
+
+  <!-- ドット -->
+  <div class="dots" id="dots">
+    <div class="dot active" id="dot-0"></div>
+    <div class="dot" id="dot-1"></div>
+    <div class="dot" id="dot-2"></div>
+  </div>
+
+  <!-- SCREEN: キャラ選択 -->
+  <div class="screen active fade" id="screen-chara">
+    <p class="chara-title">話しかける相手を<br>選んでください</p>
+    <p class="chara-sub">あなたの悩みに寄り添います</p>
+    <div class="chara-cards">
+      <div class="chara-card" id="card-umeda" onclick="selectChara('umeda')"
+        style="border: 1px solid rgba(201,168,124,0.35)">
+        <div class="chara-avatar" style="background:rgba(201,168,124,0.12);color:#C9A87C;border:1px solid rgba(201,168,124,0.35)">梅</div>
+        <div class="chara-name" style="color:#C9A87C">梅田さん</div>
+        <div class="chara-type">やさしい</div>
+      </div>
+      <div class="chara-card" id="card-masachika" onclick="selectChara('masachika')"
+        style="border: 1px solid rgba(91,127,166,0.35)">
+        <div class="chara-avatar" style="background:rgba(91,127,166,0.12);color:#5B7FA6;border:1px solid rgba(91,127,166,0.35)">正</div>
+        <div class="chara-name" style="color:#5B7FA6">正親さん</div>
+        <div class="chara-type">きびしい</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: チャット -->
+  <div class="screen" id="screen-chat">
+    <div class="chat-header">
+      <div class="chat-avatar" id="chat-avatar"></div>
+      <div>
+        <div id="chat-name" style="font-size:13px;font-weight:700;margin-bottom:2px"></div>
+        <div style="font-size:11px;color:var(--muted)">あなたの話を聞かせてください</div>
+      </div>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <textarea id="user-input" placeholder="悩みを話してください…" rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN: 壁紙 -->
+  <div class="screen" id="screen-wp">
+    <p class="wp-label">あなたの気持ちから生まれた壁紙</p>
+    <div class="wp-frame">
+      <canvas id="wp-canvas" width="360" height="640"></canvas>
+    </div>
+    <button class="btn-primary" id="dl-btn" onclick="downloadWallpaper()">壁紙を保存する</button>
+    <button class="btn-secondary" onclick="drawWallpaper()">もう一度生成する</button>
+    <button class="btn-secondary" onclick="restart()">最初からやり直す</button>
+  </div>
+</div>
+
+<script>
+const CHARA = {
+  umeda: {
+    name: '梅田さん', initial: '梅',
+    color: '#C9A87C', colorDim: 'rgba(201,168,124,0.12)', colorBorder: 'rgba(201,168,124,0.35)',
+    opening: 'やあ、来てくれたんだね。今どんなことで悩んでるか、話してみて。',
+    system: `あなたは「梅田さん」です。優しく温かい人物で、相手の悩みに深く寄り添います。一人称は「僕」。語尾は「〜だよ」「〜かな？」「〜だね」など柔らかく。返答は80文字以内で。
+
+【返し方のルール】
+■ターン1: 短い返答(20文字以下)→もっと引き出す「そっか、もう少し教えてもらえる？」系。長い返答→共感してから深掘り「そうなんだね、特に辛いのはどの部分かな？」系。ネガティブ強→まず受け止める「それは辛かったね、もう少し聞かせて？」系。
+■ターン2(最後): 短い返答→「一番しんどいのはどこかな？」系で締め。長い返答→「話してくれてありがとう。じゃあ、君の気持ちを壁紙にするね。」で締め。ネガティブ強→「よく話してくれたね。じゃあ、君の気持ちを壁紙にするね。」で締め。`,
+    palette: [
+      ['#1A1209','#3D2B14','#6B4A22','#C9A87C','#E8D5B0'],
+      ['#0D1219','#1A2A3D','#2A4A6B','#7CA8C9','#C8DDF0'],
+      ['#120D19','#2B1A3D','#4A2A6B','#A87CC9','#D5C8F0'],
+    ]
+  },
+  masachika: {
+    name: '正親さん', initial: '正',
+    color: '#5B7FA6', colorDim: 'rgba(91,127,166,0.12)', colorBorder: 'rgba(91,127,166,0.35)',
+    opening: '何があった。話してみろ。',
+    system: `あなたは「正親さん」です。厳しくも本質を突く人物。一人称は「俺」。語尾は「〜だろ」「〜だな」「〜しろ」など直球。返答は80文字以内で。
+
+【返し方のルール】
+■ターン1: 短い返答(20文字以下)→物足りなさを示す「それだけか？もっと具体的に話せ。」系。長い返答→要点を絞る「つまり何が一番問題なんだ？核心を言え。」系。ネガティブ強→受け止めてから「そこまで追い詰められてるのか。何がそうさせてる。」系。
+■ターン2(最後): 短い返答→「その一言に全部詰まってるな。壁紙を作ってやる。」で締め。長い返答→「話はわかった。壁紙を作ってやる。」で締め。ネガティブ強→「よく言えたな。壁紙を作ってやる。」で締め。`,
+    palette: [
+      ['#091219','#14253D','#1E3D6B','#5B7FA6','#A8C3E0'],
+      ['#191209','#3D2B14','#6B4A22','#A6845B','#E0C9A8'],
+      ['#091912','#143D25','#1E6B3D','#5BA675','#A8E0C3'],
+    ]
+  }
+};
+
+const NEG_WORDS = ['死にたい','消えたい','もう無理','辛すぎ','もうだめ','絶望','限界'];
+
+let chara = null;
+let history = [];
+let turnCount = 0;
+let generating = false;
+
+function classify(text) {
+  return {
+    isNeg: NEG_WORDS.some(w => text.includes(w)),
+    isShort: text.length <= 20
+  };
+}
+
+function setDot(index) {
+  [0,1,2].forEach(i => {
+    const d = document.getElementById('dot-' + i);
+    d.className = 'dot' + (i === index ? ' active' : '');
+    if (i === index && chara) d.style.background = chara.color;
+    else d.style.background = '';
+  });
+}
+
+function showScreen(id, dotIndex) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+  });
+  const s = document.getElementById(id);
+  s.classList.add('active');
+  s.classList.remove('fade');
+  void s.offsetWidth;
+  s.classList.add('fade');
+  setDot(dotIndex);
+}
+
+function selectChara(type) {
+  chara = CHARA[type];
+  document.documentElement.style.setProperty('--accent-color', chara.color);
+
+  const av = document.getElementById('chat-avatar');
+  av.textContent = chara.initial;
+  av.style.background = chara.colorDim;
+  av.style.color = chara.color;
+  av.style.border = `1px solid ${chara.colorBorder}`;
+
+  document.getElementById('chat-name').textContent = chara.name;
+  document.getElementById('chat-name').style.color = chara.color;
+
+  const btn = document.getElementById('send-btn');
+  btn.style.background = chara.color;
+  btn.querySelector('svg').style.fill = '#0E0E12';
+
+  document.getElementById('dl-btn').style.background = chara.color;
+  document.getElementById('dl-btn').style.color = '#0E0E12';
+
+  history = [];
+  turnCount = 0;
+  document.getElementById('messages').innerHTML = '';
+  addMessage('ai', chara.opening);
+  history.push({ role: 'assistant', content: chara.opening });
+
+  showScreen('screen-chat', 1);
+}
+
+function addMessage(role, text) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role + ' fade';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+  div.id = 'typing';
+  div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+}
+
+async function sendMessage() {
+  if (generating) return;
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  addMessage('user', text);
+  history.push({ role: 'user', content: text });
+  turnCount++;
+  generating = true;
+  document.getElementById('send-btn').disabled = true;
+  showTyping();
+
+  const isFinal = turnCount >= 2;
+  const { isNeg, isShort } = classify(text);
+  const tLabel = turnCount === 1 ? 'ターン1' : 'ターン2';
+  const lLabel = isShort ? '短い返答（20文字以下）' : '長い返答（21文字以上）';
+  const nLabel = isNeg ? 'ネガティブが強い' : 'ネガティブなし';
+  const dynamicSystem = chara.system +
+    `\n\n【現在の状況】${tLabel}、${lLabel}、${nLabel}。` +
+    (isFinal ? 'これが最後のターン。必ず会話を締めくくり壁紙を作る旨を伝えること。' : '');
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history, system: dynamicSystem })
+    });
+    const data = await res.json();
+    const reply = data.reply || chara.opening;
+    removeTyping();
+    addMessage('ai', reply);
+    history.push({ role: 'assistant', content: reply });
+
+    if (isFinal) {
+      setTimeout(() => {
+        showScreen('screen-wp', 2);
+        setTimeout(() => drawWallpaper(), 80);
+      }, 1600);
+    }
+  } catch (e) {
+    removeTyping();
+    const fb = {
+      umeda: { short: ['もう少し教えてもらえる？','うまく聞き取れなかったかな、もう一度話してみて。'], long: ['ごめん、もう一回聞かせてもらえると嬉しいな。'], neg: ['ちゃんと聞きたいから、もう一度話してくれる？'] },
+      masachika: { short: ['聞こえなかった。もう一回言え。'], long: ['うまく受け取れなかった。繰り返せ。'], neg: ['もう一度言え。ちゃんと聞く。'] }
+    };
+    const key = chara.initial === '梅' ? 'umeda' : 'masachika';
+    const bucket = isNeg ? 'neg' : isShort ? 'short' : 'long';
+    const list = fb[key][bucket];
+    addMessage('ai', list[Math.floor(Math.random() * list.length)]);
+  }
+
+  generating = false;
+  document.getElementById('send-btn').disabled = false;
+}
+
+function drawWallpaper() {
+  const canvas = document.getElementById('wp-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pal = chara.palette[Math.floor(Math.random() * chara.palette.length)];
+  const type = Math.floor(Math.random() * 3);
+  ctx.clearRect(0, 0, W, H);
+
+  if (type === 0) {
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, pal[0]); g.addColorStop(0.5, pal[2]); g.addColorStop(1, pal[1]);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    for (let i = 0; i < 90; i++) {
+      const x = Math.random()*W, y = Math.random()*H, r = Math.random()*2+0.5;
+      const a = Math.floor((Math.random()*0.45+0.1)*255).toString(16).padStart(2,'0');
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle = pal[4]+a; ctx.fill();
+    }
+    for (let w = 0; w < 6; w++) {
+      ctx.beginPath(); ctx.moveTo(0, H*0.28+w*52);
+      for (let x = 0; x <= W; x += 3) ctx.lineTo(x, H*0.28+w*52+Math.sin((x/W)*Math.PI*4+w*0.9)*26);
+      ctx.strokeStyle = pal[3]+'28'; ctx.lineWidth = 1; ctx.stroke();
+    }
+  } else if (type === 1) {
+    const g = ctx.createRadialGradient(W/2,H*0.37,0,W/2,H*0.37,W);
+    g.addColorStop(0,pal[2]); g.addColorStop(0.5,pal[1]); g.addColorStop(1,pal[0]);
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    for (let r = 22; r < W*1.6; r += 30) {
+      ctx.beginPath(); ctx.arc(W/2,H*0.37,r,0,Math.PI*2);
+      ctx.strokeStyle = pal[3]+'22'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    for (let i = 0; i < 65; i++) {
+      const x=Math.random()*W, y=Math.random()*H, r2=Math.random()*2.5+0.5;
+      ctx.beginPath(); ctx.arc(x,y,r2,0,Math.PI*2); ctx.fillStyle=pal[4]+'42'; ctx.fill();
+    }
+  } else {
+    const g = ctx.createLinearGradient(0,H,W,0);
+    g.addColorStop(0,pal[0]); g.addColorStop(1,pal[2]);
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(Math.PI/5);
+    for (let i = -18; i < 18; i++) {
+      ctx.beginPath(); ctx.moveTo(i*36,-H); ctx.lineTo(i*36,H);
+      ctx.strokeStyle = pal[3]+'1A'; ctx.lineWidth=1; ctx.stroke();
+    }
+    ctx.restore();
+    const rg = ctx.createLinearGradient(0,H*0.5,W,H*0.8);
+    rg.addColorStop(0,pal[3]+'45'); rg.addColorStop(1,pal[4]+'12');
+    ctx.fillStyle=rg; ctx.beginPath();
+    ctx.moveTo(0,H*0.54); ctx.lineTo(W,H*0.43); ctx.lineTo(W,H*0.75); ctx.lineTo(0,H*0.86);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.font='10px serif'; ctx.fillStyle=pal[4]+'38';
+  ctx.textAlign='right'; ctx.fillText(chara.name, W-14, H-14);
+}
+
+function downloadWallpaper() {
+  const canvas = document.getElementById('wp-canvas');
+  const link = document.createElement('a');
+  link.download = 'kokoro_wallpaper.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function restart() {
+  chara = null; history = []; turnCount = 0; generating = false;
+  document.getElementById('messages').innerHTML = '';
+  document.documentElement.style.setProperty('--accent-color', '#C9A87C');
+  showScreen('screen-chara', 0);
+}
+</script>
+</body>
+</html>
