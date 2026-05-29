@@ -58,7 +58,7 @@ module.exports = async function handler(req, res) {
     }
 
     // 最初の一文だけ取り出す（句点・改行・感嘆符で区切る）
-    const firstSentence = reply.split(/[。！？
+    const firstSentence = reply.split(/[\u3002\uff01\uff1f\n]/)
 ]/)[0].trim();
     const finalReply = firstSentence || reply;
     return res.status(200).json({ reply: finalReply });
