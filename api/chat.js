@@ -39,7 +39,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           contents: cleaned,
           generationConfig: {
-            maxOutputTokens: 400,
+            maxOutputTokens: 600,
             temperature: 0.8,
           }
         })
