@@ -11,20 +11,16 @@ module.exports = async function handler(req, res) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
-    // Gemini用にメッセージを変換
-    // systemメッセージは最初のuserメッセージに結合する
     const geminiMessages = messages.map((m, i) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: i === 0 && m.role === 'user' ? `${system}\n\n${m.content}` : m.content }]
+      parts: [{ text: i === 0 && m.role === 'user' ? system + '\n\n' + m.content : m.content }]
     }));
 
-    // user/modelが交互になるよう調整（Gemini APIの制約）
     const cleaned = [];
     for (const msg of geminiMessages) {
       if (cleaned.length === 0) {
         cleaned.push(msg);
       } else if (cleaned[cleaned.length - 1].role === msg.role) {
-        // 同じroleが連続する場合はテキストを結合
         cleaned[cleaned.length - 1].parts[0].text += '\n' + msg.parts[0].text;
       } else {
         cleaned.push(msg);
@@ -32,14 +28,14 @@ module.exports = async function handler(req, res) {
     }
 
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: cleaned,
           generationConfig: {
-            maxOutputTokens: 400,
+            maxOutputTokens: 800,
             temperature: 0.8,
           }
         })
@@ -47,20 +43,25 @@ module.exports = async function handler(req, res) {
     );
 
     const data = await geminiRes.json();
-    console.log('Gemini response:', JSON.stringify(data));
-
-    // レスポンスから返答を取得
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const reply = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] ? data.candidates[0].content.parts[0].text : '';
 
     if (!reply) {
       console.error('Empty reply. Full response:', JSON.stringify(data));
-      return res.status(200).json({ reply: '', error: 'empty_reply', raw: data });
+      return res.status(200).json({ reply: '', error: 'empty_reply' });
     }
 
-    // 最初の一文だけ取り出す（句点・改行・感嘆符で区切る）
-    const firstSentence = reply.split(/[\u3002\uff01\uff1f\n]/)
-]/)[0].trim();
-    const finalReply = firstSentence || reply;
+    // 最初の一文だけ取り出す
+    var separators = ['\u3002', '\uff01', '\uff1f', '\n'];
+    var firstSentence = reply;
+    for (var i = 0; i < separators.length; i++) {
+      var idx = firstSentence.indexOf(separators[i]);
+      if (idx !== -1) {
+        firstSentence = firstSentence.substring(0, idx);
+      }
+    }
+    firstSentence = firstSentence.trim();
+    var finalReply = firstSentence || reply;
+
     return res.status(200).json({ reply: finalReply });
 
   } catch (error) {
