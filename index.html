@@ -91,12 +91,17 @@
   }
   .chara-card:hover { transform: translateY(-3px); }
   .chara-avatar {
-    width: 48px; height: 48px; border-radius: 50%;
-    margin: 0 auto 0.6rem;
-    display: flex; align-items: center; justify-content: center;
-    font-family: Georgia, serif; font-size: 16px; font-weight: 600;
+    width: 72px; height: 72px; border-radius: 50%;
+    margin: 0 auto 0.75rem;
+    overflow: hidden;
+  }
+  .chara-avatar img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center top;
   }
   .chara-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .chara-type { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; }
 
   /* チャット */
   .chat-header {
@@ -105,10 +110,14 @@
     border-bottom: 1px solid #2A2A35;
   }
   .chat-avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-family: Georgia, serif; font-size: 11px; font-weight: 600;
+    width: 36px; height: 36px; border-radius: 50%;
+    overflow: hidden;
     flex-shrink: 0;
+  }
+  .chat-avatar img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center top;
   }
   .messages {
     flex: 1; overflow-y: auto;
@@ -230,13 +239,19 @@
     <div class="chara-cards">
       <div class="chara-card" id="card-umeda" onclick="selectChara('umeda')"
         style="border: 1px solid rgba(201,168,124,0.35)">
-        <div class="chara-avatar" style="background:rgba(201,168,124,0.12);color:#C9A87C;border:1px solid rgba(201,168,124,0.35)">梅</div>
+        <div class="chara-avatar" style="border: 2px solid rgba(201,168,124,0.5)">
+          <img src="/梅田_昭仁.jpg" alt="梅田さん">
+        </div>
         <div class="chara-name" style="color:#C9A87C">梅田さん</div>
+        <div class="chara-type">やさしい</div>
       </div>
       <div class="chara-card" id="card-masachika" onclick="selectChara('masachika')"
         style="border: 1px solid rgba(91,127,166,0.35)">
-        <div class="chara-avatar" style="background:rgba(91,127,166,0.12);color:#5B7FA6;border:1px solid rgba(91,127,166,0.35)">正</div>
+        <div class="chara-avatar" style="border: 2px solid rgba(91,127,166,0.5)">
+          <img src="/鈴木_将親.jpg" alt="将親さん">
+        </div>
         <div class="chara-name" style="color:#5B7FA6">正親さん</div>
+        <div class="chara-type">きびしい</div>
       </div>
     </div>
   </div>
@@ -244,7 +259,9 @@
   <!-- SCREEN: チャット -->
   <div class="screen" id="screen-chat">
     <div class="chat-header">
-      <div class="chat-avatar" id="chat-avatar"></div>
+      <div class="chat-avatar" id="chat-avatar">
+        <img id="chat-avatar-img" src="" alt="">
+      </div>
       <div>
         <div id="chat-name" style="font-size:13px;font-weight:700;margin-bottom:2px"></div>
         <div style="font-size:11px;color:var(--muted)">あなたの話を聞かせてください</div>
@@ -276,13 +293,10 @@
 const CHARA = {
   umeda: {
     name: '梅田さん', initial: '梅',
+    img: '/梅田_昭仁.jpg',
     color: '#C9A87C', colorDim: 'rgba(201,168,124,0.12)', colorBorder: 'rgba(201,168,124,0.35)',
     opening: 'やあ、来てくれたんだね。今どんなことで悩んでるか、話してみて。',
-    system: `あなたは「梅田さん」です。優しく温かい人物で、相手の悩みに深く寄り添います。一人称は「僕」。語尾は「〜だよ」「〜かな？」「〜だね」など柔らかく。返答は50文字以内で収めること。長い返答は絶対禁止。優しく返すこと。
-
-【返し方のルール】
-■ターン1: 短い返答(20文字以下)→もっと引き出す「そっか、もう少し教えてもらえる？」系。長い返答→共感してから深掘り「そうなんだね、特に辛いのはどの部分かな？」系。ネガティブ強→まず受け止める「それは辛かったね、もう少し聞かせて？」系。
-■ターン2(最後): 短い返答→「一番しんどいのはどこかな？」系で締め。長い返答→「話してくれてありがとう。じゃあ、君の気持ちを壁紙にするね。」で締め。ネガティブ強→「よく話してくれたね。じゃあ、君の気持ちを壁紙にするね。」で締め。`,
+    system: 'あなたは「梅田さん」です。優しく温かい人物で、相手の悩みに深く寄り添います。一人称は「僕」。語尾は「〜だよ」「〜かな？」「〜だね」など柔らかく。返答は必ず1文、50文字以内で収めること。長い返答は絶対禁止。\n\n【返し方のルール】\n■ターン1: 短い返答(20文字以下)→もっと引き出す「そっか、もう少し教えてもらえる？」系。長い返答→共感してから深掘り「そうなんだね、特に辛いのはどの部分かな？」系。ネガティブ強→まず受け止める「それは辛かったね、もう少し聞かせて？」系。\n■ターン2(最後): 短い返答→「一番しんどいのはどこかな？」系で締め。長い返答→「話してくれてありがとう。じゃあ、君の気持ちを壁紙にするね。」で締め。ネガティブ強→「よく話してくれたね。じゃあ、君の気持ちを壁紙にするね。」で締め。',
     palette: [
       ['#1A1209','#3D2B14','#6B4A22','#C9A87C','#E8D5B0'],
       ['#0D1219','#1A2A3D','#2A4A6B','#7CA8C9','#C8DDF0'],
@@ -291,13 +305,10 @@ const CHARA = {
   },
   masachika: {
     name: '正親さん', initial: '正',
+    img: '/鈴木_将親.jpg',
     color: '#5B7FA6', colorDim: 'rgba(91,127,166,0.12)', colorBorder: 'rgba(91,127,166,0.35)',
     opening: '何があった。話してみろ。',
-    system: `あなたは「正親さん」です。厳しくも本質を突く人物。一人称は「俺」。語尾は「〜だろ」「〜だな」「〜しろ」など直球。返答は必ず50文字以内で収めること。長い返答は絶対禁止。厳しく返すこと。
-
-【返し方のルール】
-■ターン1: 短い返答(20文字以下)→物足りなさを示す「それだけか？もっと具体的に話せ。」系。長い返答→要点を絞る「つまり何が一番問題なんだ？核心を言え。」系。ネガティブ強→受け止めてから「そこまで追い詰められてるのか。何がそうさせてる。」系。
-■ターン2(最後): 短い返答→「その一言に全部詰まってるな。壁紙を作ってやる。」で締め。長い返答→「話はわかった。壁紙を作ってやる。」で締め。ネガティブ強→「よく言えたな。壁紙を作ってやる。」で締め。`,
+    system: 'あなたは「将親さん」です。厳しくも本質を突く人物。一人称は「俺」。語尾は「〜だろ」「〜だな」「〜しろ」など直球。返答は必ず1文、50文字以内で収めること。長い返答は絶対禁止。\n\n【返し方のルール】\n■ターン1: 短い返答(20文字以下)→物足りなさを示す「それだけか？もっと具体的に話せ。」系。長い返答→要点を絞る「つまり何が一番問題なんだ？核心を言え。」系。ネガティブ強→受け止めてから「そこまで追い詰められてるのか。何がそうさせてる。」系。\n■ターン2(最後): 短い返答→「その一言に全部詰まってるな。壁紙を作ってやる。」で締め。長い返答→「話はわかった。壁紙を作ってやる。」で締め。ネガティブ強→「よく言えたな。壁紙を作ってやる。」で締め。',
     palette: [
       ['#091219','#14253D','#1E3D6B','#5B7FA6','#A8C3E0'],
       ['#191209','#3D2B14','#6B4A22','#A6845B','#E0C9A8'],
@@ -315,14 +326,14 @@ let generating = false;
 
 function classify(text) {
   return {
-    isNeg: NEG_WORDS.some(w => text.includes(w)),
+    isNeg: NEG_WORDS.some(function(w) { return text.includes(w); }),
     isShort: text.length <= 20
   };
 }
 
 function setDot(index) {
-  [0,1,2].forEach(i => {
-    const d = document.getElementById('dot-' + i);
+  [0,1,2].forEach(function(i) {
+    var d = document.getElementById('dot-' + i);
     d.className = 'dot' + (i === index ? ' active' : '');
     if (i === index && chara) d.style.background = chara.color;
     else d.style.background = '';
@@ -330,10 +341,10 @@ function setDot(index) {
 }
 
 function showScreen(id, dotIndex) {
-  document.querySelectorAll('.screen').forEach(s => {
+  document.querySelectorAll('.screen').forEach(function(s) {
     s.classList.remove('active');
   });
-  const s = document.getElementById(id);
+  var s = document.getElementById(id);
   s.classList.add('active');
   s.classList.remove('fade');
   void s.offsetWidth;
@@ -345,16 +356,15 @@ function selectChara(type) {
   chara = CHARA[type];
   document.documentElement.style.setProperty('--accent-color', chara.color);
 
-  const av = document.getElementById('chat-avatar');
-  av.textContent = chara.initial;
-  av.style.background = chara.colorDim;
-  av.style.color = chara.color;
-  av.style.border = `1px solid ${chara.colorBorder}`;
+  // チャット画面のアバター画像を切り替え
+  var avatarImg = document.getElementById('chat-avatar-img');
+  avatarImg.src = chara.img;
+  avatarImg.alt = chara.name;
 
   document.getElementById('chat-name').textContent = chara.name;
   document.getElementById('chat-name').style.color = chara.color;
 
-  const btn = document.getElementById('send-btn');
+  var btn = document.getElementById('send-btn');
   btn.style.background = chara.color;
   btn.querySelector('svg').style.fill = '#0E0E12';
 
@@ -371,10 +381,10 @@ function selectChara(type) {
 }
 
 function addMessage(role, text) {
-  const msgs = document.getElementById('messages');
-  const div = document.createElement('div');
+  var msgs = document.getElementById('messages');
+  var div = document.createElement('div');
   div.className = 'msg ' + role + ' fade';
-  const bubble = document.createElement('div');
+  var bubble = document.createElement('div');
   bubble.className = 'bubble';
   bubble.textContent = text;
   div.appendChild(bubble);
@@ -383,8 +393,8 @@ function addMessage(role, text) {
 }
 
 function showTyping() {
-  const msgs = document.getElementById('messages');
-  const div = document.createElement('div');
+  var msgs = document.getElementById('messages');
+  var div = document.createElement('div');
   div.className = 'msg ai';
   div.id = 'typing';
   div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
@@ -393,7 +403,7 @@ function showTyping() {
 }
 
 function removeTyping() {
-  const t = document.getElementById('typing');
+  var t = document.getElementById('typing');
   if (t) t.remove();
 }
 
@@ -408,8 +418,8 @@ function autoResize(el) {
 
 async function sendMessage() {
   if (generating) return;
-  const input = document.getElementById('user-input');
-  const text = input.value.trim();
+  var input = document.getElementById('user-input');
+  var text = input.value.trim();
   if (!text) return;
 
   input.value = '';
@@ -421,42 +431,44 @@ async function sendMessage() {
   document.getElementById('send-btn').disabled = true;
   showTyping();
 
-  const isFinal = turnCount >= 2;
-  const { isNeg, isShort } = classify(text);
-  const tLabel = turnCount === 1 ? 'ターン1' : 'ターン2';
-  const lLabel = isShort ? '短い返答（20文字以下）' : '長い返答（21文字以上）';
-  const nLabel = isNeg ? 'ネガティブが強い' : 'ネガティブなし';
-  const dynamicSystem = chara.system +
-    `\n\n【現在の状況】${tLabel}、${lLabel}、${nLabel}。` +
+  var isFinal = turnCount >= 2;
+  var classified = classify(text);
+  var isNeg = classified.isNeg;
+  var isShort = classified.isShort;
+  var tLabel = turnCount === 1 ? 'ターン1' : 'ターン2';
+  var lLabel = isShort ? '短い返答（20文字以下）' : '長い返答（21文字以上）';
+  var nLabel = isNeg ? 'ネガティブが強い' : 'ネガティブなし';
+  var dynamicSystem = chara.system +
+    '\n\n【現在の状況】' + tLabel + '、' + lLabel + '、' + nLabel + '。' +
     (isFinal ? 'これが最後のターン。必ず会話を締めくくり壁紙を作る旨を伝えること。' : '');
 
   try {
-    const res = await fetch('/api/chat', {
+    var res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: history, system: dynamicSystem })
     });
-    const data = await res.json();
-    const reply = data.reply || chara.opening;
+    var data = await res.json();
+    var reply = data.reply || chara.opening;
     removeTyping();
     addMessage('ai', reply);
     history.push({ role: 'assistant', content: reply });
 
     if (isFinal) {
-      setTimeout(() => {
+      setTimeout(function() {
         showScreen('screen-wp', 2);
-        setTimeout(() => drawWallpaper(), 80);
+        setTimeout(function() { drawWallpaper(); }, 80);
       }, 1600);
     }
   } catch (e) {
     removeTyping();
-    const fb = {
+    var fb = {
       umeda: { short: ['もう少し教えてもらえる？','うまく聞き取れなかったかな、もう一度話してみて。'], long: ['ごめん、もう一回聞かせてもらえると嬉しいな。'], neg: ['ちゃんと聞きたいから、もう一度話してくれる？'] },
       masachika: { short: ['聞こえなかった。もう一回言え。'], long: ['うまく受け取れなかった。繰り返せ。'], neg: ['もう一度言え。ちゃんと聞く。'] }
     };
-    const key = chara.initial === '梅' ? 'umeda' : 'masachika';
-    const bucket = isNeg ? 'neg' : isShort ? 'short' : 'long';
-    const list = fb[key][bucket];
+    var key = chara.initial === '梅' ? 'umeda' : 'masachika';
+    var bucket = isNeg ? 'neg' : isShort ? 'short' : 'long';
+    var list = fb[key][bucket];
     addMessage('ai', list[Math.floor(Math.random() * list.length)]);
   }
 
@@ -465,50 +477,50 @@ async function sendMessage() {
 }
 
 function drawWallpaper() {
-  const canvas = document.getElementById('wp-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const pal = chara.palette[Math.floor(Math.random() * chara.palette.length)];
-  const type = Math.floor(Math.random() * 3);
+  var canvas = document.getElementById('wp-canvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var pal = chara.palette[Math.floor(Math.random() * chara.palette.length)];
+  var type = Math.floor(Math.random() * 3);
   ctx.clearRect(0, 0, W, H);
 
   if (type === 0) {
-    const g = ctx.createLinearGradient(0, 0, W, H);
+    var g = ctx.createLinearGradient(0, 0, W, H);
     g.addColorStop(0, pal[0]); g.addColorStop(0.5, pal[2]); g.addColorStop(1, pal[1]);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    for (let i = 0; i < 90; i++) {
-      const x = Math.random()*W, y = Math.random()*H, r = Math.random()*2+0.5;
-      const a = Math.floor((Math.random()*0.45+0.1)*255).toString(16).padStart(2,'0');
+    for (var i = 0; i < 90; i++) {
+      var x = Math.random()*W, y = Math.random()*H, r = Math.random()*2+0.5;
+      var a = Math.floor((Math.random()*0.45+0.1)*255).toString(16).padStart(2,'0');
       ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle = pal[4]+a; ctx.fill();
     }
-    for (let w = 0; w < 6; w++) {
+    for (var w = 0; w < 6; w++) {
       ctx.beginPath(); ctx.moveTo(0, H*0.28+w*52);
-      for (let x = 0; x <= W; x += 3) ctx.lineTo(x, H*0.28+w*52+Math.sin((x/W)*Math.PI*4+w*0.9)*26);
+      for (var xi = 0; xi <= W; xi += 3) ctx.lineTo(xi, H*0.28+w*52+Math.sin((xi/W)*Math.PI*4+w*0.9)*26);
       ctx.strokeStyle = pal[3]+'28'; ctx.lineWidth = 1; ctx.stroke();
     }
   } else if (type === 1) {
-    const g = ctx.createRadialGradient(W/2,H*0.37,0,W/2,H*0.37,W);
-    g.addColorStop(0,pal[2]); g.addColorStop(0.5,pal[1]); g.addColorStop(1,pal[0]);
-    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-    for (let r = 22; r < W*1.6; r += 30) {
-      ctx.beginPath(); ctx.arc(W/2,H*0.37,r,0,Math.PI*2);
+    var g2 = ctx.createRadialGradient(W/2,H*0.37,0,W/2,H*0.37,W);
+    g2.addColorStop(0,pal[2]); g2.addColorStop(0.5,pal[1]); g2.addColorStop(1,pal[0]);
+    ctx.fillStyle = g2; ctx.fillRect(0,0,W,H);
+    for (var r2 = 22; r2 < W*1.6; r2 += 30) {
+      ctx.beginPath(); ctx.arc(W/2,H*0.37,r2,0,Math.PI*2);
       ctx.strokeStyle = pal[3]+'22'; ctx.lineWidth = 1; ctx.stroke();
     }
-    for (let i = 0; i < 65; i++) {
-      const x=Math.random()*W, y=Math.random()*H, r2=Math.random()*2.5+0.5;
-      ctx.beginPath(); ctx.arc(x,y,r2,0,Math.PI*2); ctx.fillStyle=pal[4]+'42'; ctx.fill();
+    for (var i2 = 0; i2 < 65; i2++) {
+      var x2=Math.random()*W, y2=Math.random()*H, r3=Math.random()*2.5+0.5;
+      ctx.beginPath(); ctx.arc(x2,y2,r3,0,Math.PI*2); ctx.fillStyle=pal[4]+'42'; ctx.fill();
     }
   } else {
-    const g = ctx.createLinearGradient(0,H,W,0);
-    g.addColorStop(0,pal[0]); g.addColorStop(1,pal[2]);
-    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    var g3 = ctx.createLinearGradient(0,H,W,0);
+    g3.addColorStop(0,pal[0]); g3.addColorStop(1,pal[2]);
+    ctx.fillStyle = g3; ctx.fillRect(0,0,W,H);
     ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(Math.PI/5);
-    for (let i = -18; i < 18; i++) {
-      ctx.beginPath(); ctx.moveTo(i*36,-H); ctx.lineTo(i*36,H);
+    for (var i3 = -18; i3 < 18; i3++) {
+      ctx.beginPath(); ctx.moveTo(i3*36,-H); ctx.lineTo(i3*36,H);
       ctx.strokeStyle = pal[3]+'1A'; ctx.lineWidth=1; ctx.stroke();
     }
     ctx.restore();
-    const rg = ctx.createLinearGradient(0,H*0.5,W,H*0.8);
+    var rg = ctx.createLinearGradient(0,H*0.5,W,H*0.8);
     rg.addColorStop(0,pal[3]+'45'); rg.addColorStop(1,pal[4]+'12');
     ctx.fillStyle=rg; ctx.beginPath();
     ctx.moveTo(0,H*0.54); ctx.lineTo(W,H*0.43); ctx.lineTo(W,H*0.75); ctx.lineTo(0,H*0.86);
@@ -519,8 +531,8 @@ function drawWallpaper() {
 }
 
 function downloadWallpaper() {
-  const canvas = document.getElementById('wp-canvas');
-  const link = document.createElement('a');
+  var canvas = document.getElementById('wp-canvas');
+  var link = document.createElement('a');
   link.download = 'kokoro_wallpaper.png';
   link.href = canvas.toDataURL('image/png');
   link.click();
